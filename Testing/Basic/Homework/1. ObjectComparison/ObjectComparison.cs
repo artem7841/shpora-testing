@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using FluentAssertions;
 
 namespace HomeExercise.Tasks.ObjectComparison;
 public class ObjectComparison
@@ -19,13 +20,41 @@ public class ObjectComparison
         ClassicAssert.AreEqual(actualTsar.Age, expectedTsar.Age);
         ClassicAssert.AreEqual(actualTsar.Height, expectedTsar.Height);
         ClassicAssert.AreEqual(actualTsar.Weight, expectedTsar.Weight);
-
+        
         ClassicAssert.AreEqual(expectedTsar.Parent!.Name, actualTsar.Parent!.Name);
         ClassicAssert.AreEqual(expectedTsar.Parent.Age, actualTsar.Parent.Age);
         ClassicAssert.AreEqual(expectedTsar.Parent.Height, actualTsar.Parent.Height);
         ClassicAssert.AreEqual(expectedTsar.Parent.Parent, actualTsar.Parent.Parent);
+        
+        
+
+    }
+    
+    [Test]
+    [Description("Проверка текущего царя")]
+    [Category("ToRefactor")]
+    public void CheckCurrentTsarFluentAssertions()
+    {
+        var actualTsar = TsarRegistry.GetCurrentTsar();
+
+        var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
+            new Person("Vasili III of Russia", 28, 170, 60, null));
+
+
+        actualTsar.Should().BeEquivalentTo(expectedTsar, options => 
+            options
+                .Excluding(p => p.Id) 
+                .Excluding(p => p.Parent.Id)
+        );
+        // Тест с FluentAssertions имеет следующие приемущества: 
+        // 1) Автоматически расширяется при добавлении новых свойств в класс Person
+        // 2) Лучшая читаемость кода
+        // 3) При  ошибке видно сразу каке свойтво не совпало, например если изменить возраст в expectedTsar вывод будет содержать "Expected field actualTsar.Age to be 53, but found 54." 
+        // а при Assert "Assert.That(actual, Is.EqualTo(expected)) Expected: 54 But was:  53" - не понятно какое именно свойтво провалило тест 
+
     }
 
+    
     [Test]
     [Description("Альтернативное решение. Какие у него недостатки?")]
     public void CheckCurrentTsar_WithCustomEquality()
@@ -36,6 +65,10 @@ public class ObjectComparison
 
         // Какие недостатки у такого подхода? 
         ClassicAssert.True(AreEqual(actualTsar, expectedTsar));
+        
+        // Недостатки такого подхода следущие: 
+        // 1) Есть отдельный метод AreEqual и при изменении класса Person нужно будет идти в него менять т.е. сложно поддреживать
+        // 2) В стек-трейсе нет информации о том, какое именно свойство не совпало
     }
 
     private bool AreEqual(Person? actual, Person? expected)
