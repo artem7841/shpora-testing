@@ -93,4 +93,12 @@ public class NumberValidatorTestsFix
 
         validator.IsValidNumber(number).Should().BeFalse(description);
     }
+    
+    [TestCase("12,34", "Запятая в качестве разделителя")]
+    public void IsValidNumber_WithCommaAsSeparator_ReturnsTrue(string number, string description)
+    {
+        var validator = new NumberValidator(10, 2);
+
+        validator.IsValidNumber(number).Should().BeTrue(description);
+    }
 }
