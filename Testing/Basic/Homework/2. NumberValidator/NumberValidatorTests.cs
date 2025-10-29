@@ -9,33 +9,43 @@ namespace HomeExercise.Tasks.NumberValidator;
 public class NumberValidatorTestsFix
 {
     [Test]
-    public void КонструкторКорректноВалидируетПараметры()
+    public void Constructor_WithInvalidParameters_ThrowsArgumentException()
     {
-        // Некорректные параметры
         Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2));
         Assert.Throws<ArgumentException>(() => new NumberValidator(5, -1));
         Assert.Throws<ArgumentException>(() => new NumberValidator(5, 6));
-        
-        // Корректные параметры
+    }
+    
+    [Test]
+    public void Constructor_WithValidParameters_DoesNotThrow()
+    {
         Assert.DoesNotThrow(() => new NumberValidator(1, 0));
         Assert.DoesNotThrow(() => new NumberValidator(5, 2));
         Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
     }
 
     [Test]
-    public void IsValidNumberКорректноОбрабатываетОсновныеСценарии()
+    public void IsValidNumber_WithValidNumberFormats_ReturnsTrue()
     {
         var validator = new NumberValidator(5, 2, true);
         
         Assert.Multiple(() =>
         {
-            // Корректные числа
             Assert.That(validator.IsValidNumber("0"), Is.True, "Целый ноль");
             Assert.That(validator.IsValidNumber("0.0"), Is.True, "Десятичный ноль");
             Assert.That(validator.IsValidNumber("123.45"), Is.True, "Корректное десятичное");
             Assert.That(validator.IsValidNumber("+1.23"), Is.True, "С явным плюсом");
-            
-            // Некорректные числа
+
+        });
+    }
+    
+    [Test]
+    public void IsValidNumber_WithInvalidNumberFormats_ReturnsFalse()
+    {
+        var validator = new NumberValidator(5, 2, true);
+        
+        Assert.Multiple(() =>
+        {
             Assert.That(validator.IsValidNumber("-1.23"), Is.False, "Отрицательное при onlyPositive=true");
             Assert.That(validator.IsValidNumber("00.000"), Is.False, "Превышение precision");
             Assert.That(validator.IsValidNumber("0.000"), Is.False, "Превышение scale");
@@ -46,7 +56,7 @@ public class NumberValidatorTestsFix
     }
 
     [Test]
-    public void IsValidNumberКорректноРаботаетСPrecisionИScale()
+    public void IsValidNumber_WithPrecisionAndScaleLimits_RespectsBoundaries()
     {
         var strictValidator = new NumberValidator(3, 2);
         
@@ -64,7 +74,7 @@ public class NumberValidatorTestsFix
     }
 
     [Test]
-    public void IsValidNumberКорректноРаботаетСРежимомOnlyPositive()
+    public void IsValidNumber_WithOnlyPositiveMode_RespectsSignRestrictions()
     {
         var positiveOnly = new NumberValidator(5, 2, true);
         var anyNum = new NumberValidator(5, 2, false);
@@ -79,7 +89,7 @@ public class NumberValidatorTestsFix
     }
     
     [Test]
-    public void IsValidNumberКорректноВалидируетФорматы() 
+    public void IsValidNumber_WithInvalidFormats_ReturnsFalse() 
     {
         var validator = new NumberValidator(10, 2);
         
