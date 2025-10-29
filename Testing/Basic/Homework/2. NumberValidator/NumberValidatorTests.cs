@@ -56,18 +56,25 @@ public class NumberValidatorTestsFix
     }
 
     [Test]
-    public void IsValidNumber_WithPrecisionAndScaleLimits_RespectsBoundaries()
+    public void IsValidNumber_WithValidPrecisionAndScale_ReturnsTrue()
     {
         var strictValidator = new NumberValidator(3, 2);
-        
+    
         Assert.Multiple(() =>
         {
-            // Граничные случаи
             Assert.That(strictValidator.IsValidNumber("1.23"), Is.True, "Максимальная precision и scale");
             Assert.That(strictValidator.IsValidNumber("12.3"), Is.True, "Граница precision");
             Assert.That(strictValidator.IsValidNumber("0.12"), Is.True, "Граница scale");
-            
-            // Превышение лимитов
+        });
+    }
+
+    [Test]
+    public void IsValidNumber_WithExceededPrecisionAndScale_ReturnsFalse()
+    {
+        var strictValidator = new NumberValidator(3, 2);
+    
+        Assert.Multiple(() =>
+        {
             Assert.That(strictValidator.IsValidNumber("12.34"), Is.False, "Превышение precision");
             Assert.That(strictValidator.IsValidNumber("123.4"), Is.False, "Превышение precision в целой части");
         });
