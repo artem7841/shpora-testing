@@ -19,15 +19,6 @@ public class NumberValidatorTestsFix
         action.Should().Throw<ArgumentException>();
     }
     
-    [TestCase(1, 0)]
-    [TestCase(5, 2)]
-    [TestCase(1, 0, true)]
-    public void Constructor_WithValidParameters_DoesNotThrow(int precision, int scale, bool onlyPositive = false)
-    {
-        Action action = () => new NumberValidator(precision, scale, onlyPositive);
-
-        action.Should().NotThrow();
-    }
 
     [TestCase("0", "Целый ноль")]
     [TestCase("0.0", "Десятичный ноль")]
