@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using FluentAssertions;
+using FluentAssertions.Equivalency;
 
 namespace HomeExercise.Tasks.ObjectComparison;
 public class ObjectComparison
@@ -44,7 +45,9 @@ public class ObjectComparison
         actualTsar.Should().BeEquivalentTo(expectedTsar, options => 
             options
                 .Excluding(p => p.Id) 
-                .Excluding(p => p.Parent.Id)
+                .Excluding((IMemberInfo p) => 
+                    p.Name == "Id" && 
+                    p.Path.Contains("Parent"))
         );
         // Тест с FluentAssertions имеет следующие приемущества: 
         // 1) Автоматически расширяется при добавлении новых свойств в класс Person
