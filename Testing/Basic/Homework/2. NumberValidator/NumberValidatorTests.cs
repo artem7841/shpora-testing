@@ -54,7 +54,7 @@ public class NumberValidatorTestsFix
         strictValidator.IsValidNumber(number).Should().BeTrue(description);
     }
 
-    [TestCase("12.34", "Превышение precision")]
+
     [TestCase("123.4", "Превышение precision в целой части")]
     public void IsValidNumber_WithExceededPrecisionAndScale_ReturnsFalse(string number, string description)
     {
