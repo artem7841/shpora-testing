@@ -4,40 +4,6 @@ using NUnit.Framework.Legacy;
 
 namespace HomeExercise.Tasks.NumberValidator;
 
-[TestFixture]
-public class NumberValidatorTests
-{
-    [Test]
-    public void Test()
-    {
-        Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2, true));
-        Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
-        Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2, false));
-        Assert.DoesNotThrow(() => new NumberValidator(1, 0, true)); // Дублирует 2 проверку
-
-        ClassicAssert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0")); // Дублирует 3 проверку
-        ClassicAssert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0"));
-        ClassicAssert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-        ClassicAssert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("00.00"));
-        ClassicAssert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("-0.00"));
-        ClassicAssert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0")); // Дублирует 3 проверку
-        ClassicAssert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("+0.00"));
-        ClassicAssert.IsTrue(new NumberValidator(4, 2, true).IsValidNumber("+1.23"));
-        ClassicAssert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("+1.23"));
-        ClassicAssert.IsFalse(new NumberValidator(17, 2, true).IsValidNumber("0.000"));
-        ClassicAssert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("-1.23"));
-        ClassicAssert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("a.sd"));
-    }
-}
-
-
-// Было изменено:
-// 1) Тесты были разделены на логические группы для лучшей читаемости
-// 2) Были добалены сообщения к каждому тесту чтобы из стек-трейса было понятно на каких данных тест не работает
-// 3) Использован Assert.Multiple() для того чтобы одна упавшая проверка не блокировала прохождение остальных проверок
-// 4) Удалены дублирующиеся тесты
-// 5) Добавлены тесты проверяющие: пограничные значения на scale и precision, параметр onlyPositive=false, пустую строку и null, запятую в качетве разделителя,
-// некоректные форматы чисел (2 точки; число начинается с точки; без дробной части, но с точкой), отрицательный ноль.
 
 [TestFixture]
 public class NumberValidatorTestsFix
@@ -59,7 +25,7 @@ public class NumberValidatorTestsFix
     [Test]
     public void IsValidNumberКорректноОбрабатываетОсновныеСценарии()
     {
-        var validator = new NumberValidator(17, 2, true);
+        var validator = new NumberValidator(5, 2, true);
         
         Assert.Multiple(() =>
         {
@@ -71,7 +37,7 @@ public class NumberValidatorTestsFix
             
             // Некорректные числа
             Assert.That(validator.IsValidNumber("-1.23"), Is.False, "Отрицательное при onlyPositive=true");
-            Assert.That(validator.IsValidNumber("00.00"), Is.False, "Превышение precision");
+            Assert.That(validator.IsValidNumber("00.000"), Is.False, "Превышение precision");
             Assert.That(validator.IsValidNumber("0.000"), Is.False, "Превышение scale");
             Assert.That(validator.IsValidNumber("a.sd"), Is.False, "Нечисловой формат");
             Assert.That(validator.IsValidNumber(""), Is.False, "Пустая строка"); 
