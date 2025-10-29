@@ -1,6 +1,7 @@
 ﻿
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using FluentAssertions;
 
 namespace HomeExercise.Tasks.NumberValidator;
 
@@ -8,76 +9,67 @@ namespace HomeExercise.Tasks.NumberValidator;
 [TestFixture]
 public class NumberValidatorTestsFix
 {
-    [Test]
-    public void Constructor_WithInvalidParameters_ThrowsArgumentException()
+    [TestCase(-1, 2)]
+    [TestCase(5, -1)]
+    [TestCase(5, 6)]
+    public void Constructor_WithInvalidParameters_ThrowsArgumentException(int precision, int scale)
     {
-        Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2));
-        Assert.Throws<ArgumentException>(() => new NumberValidator(5, -1));
-        Assert.Throws<ArgumentException>(() => new NumberValidator(5, 6));
+        Action action = () => new NumberValidator(precision, scale);
+
+        action.Should().Throw<ArgumentException>();
     }
     
-    [Test]
-    public void Constructor_WithValidParameters_DoesNotThrow()
+    [TestCase(1, 0)]
+    [TestCase(5, 2)]
+    [TestCase(1, 0, true)]
+    public void Constructor_WithValidParameters_DoesNotThrow(int precision, int scale, bool onlyPositive = false)
     {
-        Assert.DoesNotThrow(() => new NumberValidator(1, 0));
-        Assert.DoesNotThrow(() => new NumberValidator(5, 2));
-        Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
+        Action action = () => new NumberValidator(precision, scale, onlyPositive);
+
+        action.Should().NotThrow();
     }
 
-    [Test]
-    public void IsValidNumber_WithValidNumberFormats_ReturnsTrue()
+    [TestCase("0", "Целый ноль")]
+    [TestCase("0.0", "Десятичный ноль")]
+    [TestCase("123.45", "Корректное десятичное")]
+    [TestCase("+1.23", "С явным плюсом")]
+    public void IsValidNumber_WithValidNumberFormats_ReturnsTrue(string number, string description)
     {
         var validator = new NumberValidator(5, 2, true);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(validator.IsValidNumber("0"), Is.True, "Целый ноль");
-            Assert.That(validator.IsValidNumber("0.0"), Is.True, "Десятичный ноль");
-            Assert.That(validator.IsValidNumber("123.45"), Is.True, "Корректное десятичное");
-            Assert.That(validator.IsValidNumber("+1.23"), Is.True, "С явным плюсом");
 
-        });
+        validator.IsValidNumber(number).Should().BeTrue(description);
     }
     
-    [Test]
-    public void IsValidNumber_WithInvalidNumberFormats_ReturnsFalse()
+    [TestCase("-1.23", "Отрицательное при onlyPositive=true")]
+    [TestCase("00.000", "Превышение precision")]
+    [TestCase("0.000", "Превышение scale")]
+    [TestCase("a.sd", "Нечисловой формат")]
+    [TestCase("", "Пустая строка")]
+    [TestCase(null, "Null")]
+    public void IsValidNumber_WithInvalidNumberFormats_ReturnsFalse(string number, string description)
     {
         var validator = new NumberValidator(5, 2, true);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(validator.IsValidNumber("-1.23"), Is.False, "Отрицательное при onlyPositive=true");
-            Assert.That(validator.IsValidNumber("00.000"), Is.False, "Превышение precision");
-            Assert.That(validator.IsValidNumber("0.000"), Is.False, "Превышение scale");
-            Assert.That(validator.IsValidNumber("a.sd"), Is.False, "Нечисловой формат");
-            Assert.That(validator.IsValidNumber(""), Is.False, "Пустая строка"); 
-            Assert.That(validator.IsValidNumber(null), Is.False, "Null");
-        });
+
+        validator.IsValidNumber(number).Should().BeFalse(description);
     }
 
-    [Test]
-    public void IsValidNumber_WithValidPrecisionAndScale_ReturnsTrue()
+    [TestCase("1.23", "Максимальная precision и scale")]
+    [TestCase("12.3", "Граница precision")]
+    [TestCase("0.12", "Граница scale")]
+    public void IsValidNumber_WithValidPrecisionAndScale_ReturnsTrue(string number, string description)
     {
         var strictValidator = new NumberValidator(3, 2);
-    
-        Assert.Multiple(() =>
-        {
-            Assert.That(strictValidator.IsValidNumber("1.23"), Is.True, "Максимальная precision и scale");
-            Assert.That(strictValidator.IsValidNumber("12.3"), Is.True, "Граница precision");
-            Assert.That(strictValidator.IsValidNumber("0.12"), Is.True, "Граница scale");
-        });
+
+        strictValidator.IsValidNumber(number).Should().BeTrue(description);
     }
 
-    [Test]
-    public void IsValidNumber_WithExceededPrecisionAndScale_ReturnsFalse()
+    [TestCase("12.34", "Превышение precision")]
+    [TestCase("123.4", "Превышение precision в целой части")]
+    public void IsValidNumber_WithExceededPrecisionAndScale_ReturnsFalse(string number, string description)
     {
         var strictValidator = new NumberValidator(3, 2);
-    
-        Assert.Multiple(() =>
-        {
-            Assert.That(strictValidator.IsValidNumber("12.34"), Is.False, "Превышение precision");
-            Assert.That(strictValidator.IsValidNumber("123.4"), Is.False, "Превышение precision в целой части");
-        });
+
+        strictValidator.IsValidNumber(number).Should().BeFalse(description);
     }
 
     [Test]
@@ -86,25 +78,20 @@ public class NumberValidatorTestsFix
         var positiveOnly = new NumberValidator(5, 2, true);
         var anyNum = new NumberValidator(5, 2, false);
         
-        Assert.Multiple(() =>
-        {
-            Assert.That(positiveOnly.IsValidNumber("-1.23"), Is.False, "Только положительные: отрицательное число");
-            Assert.That(anyNum.IsValidNumber("-1.23"), Is.True, "Любые знаки: отрицательное число");
-            Assert.That(anyNum.IsValidNumber("+1.23"), Is.True, "Любые знаки: положительное с плюсом");
-            Assert.That(anyNum.IsValidNumber("-0"), Is.True, "Любые знаки: отрицательный ноль");
-        });
+        
+        positiveOnly.IsValidNumber("-1.23").Should().BeFalse("Только положительные: отрицательное число");
+        anyNum.IsValidNumber("-1.23").Should().BeTrue("Любые знаки: отрицательное число");
+        anyNum.IsValidNumber("+1.23").Should().BeTrue("Любые знаки: положительное с плюсом");
+        anyNum.IsValidNumber("-0").Should().BeTrue("Любые знаки: отрицательный ноль");
     }
     
-    [Test]
-    public void IsValidNumber_WithInvalidFormats_ReturnsFalse() 
+    [TestCase("12..34", "Две точки")]
+    [TestCase(".123", "Начинается с точки")]
+    [TestCase("123.", "Оканчивается точкой")]
+    public void IsValidNumber_WithInvalidFormats_ReturnsFalse(string number, string description)
     {
         var validator = new NumberValidator(10, 2);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(validator.IsValidNumber("12..34"), Is.False, "Две точки");
-            Assert.That(validator.IsValidNumber(".123"), Is.False, "Начинается с точки");
-            Assert.That(validator.IsValidNumber("123."), Is.False, "Оканчивается точкой");
-        });
+
+        validator.IsValidNumber(number).Should().BeFalse(description);
     }
 }
