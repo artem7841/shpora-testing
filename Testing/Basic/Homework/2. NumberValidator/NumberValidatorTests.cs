@@ -62,19 +62,27 @@ public class NumberValidatorTestsFix
 
         strictValidator.IsValidNumber(number).Should().BeFalse(description);
     }
-
+    
     [Test]
-    public void IsValidNumber_WithOnlyPositiveMode_RespectsSignRestrictions()
+    public void IsValidNumber_WithOnlyPositiveTrue_RejectsNegativeNumbers()
     {
-        var positiveOnly = new NumberValidator(5, 2, true);
-        var anyNum = new NumberValidator(5, 2, false);
-        
-        
+        var positiveOnly  = new NumberValidator(5, 2, true);
+    
         positiveOnly.IsValidNumber("-1.23").Should().BeFalse("Только положительные: отрицательное число");
-        anyNum.IsValidNumber("-1.23").Should().BeTrue("Любые знаки: отрицательное число");
-        anyNum.IsValidNumber("+1.23").Should().BeTrue("Любые знаки: положительное с плюсом");
-        anyNum.IsValidNumber("-0").Should().BeTrue("Любые знаки: отрицательный ноль");
     }
+    
+    [Test]
+    public void IsValidNumber_WithOnlyPositiveFalse_AcceptsAllSigns()
+    {
+        var anyNum  = new NumberValidator(5, 2, false);
+    
+        anyNum.IsValidNumber("-1.23").Should().BeTrue("Отрицательное число");
+        anyNum.IsValidNumber("+1.23").Should().BeTrue("Положительное число с плюсом");
+        anyNum.IsValidNumber("1.23").Should().BeTrue("Положительное число без плюсом");
+        anyNum.IsValidNumber("-0").Should().BeTrue("Отрицательный ноль");
+    }
+
+
     
     [TestCase("12..34", "Две точки")]
     [TestCase(".123", "Начинается с точки")]
