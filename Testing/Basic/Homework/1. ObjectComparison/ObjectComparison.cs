@@ -43,12 +43,9 @@ public class ObjectComparison
 
 
         actualTsar.Should().BeEquivalentTo(expectedTsar, options => 
-            options
-                .Excluding(p => p.Id) 
-                .Excluding((IMemberInfo p) => 
-                    p.Name == "Id" && 
-                    p.Path.Contains("Parent"))
+                options.Excluding((IMemberInfo p) => p.Name == nameof(Person.Id))
         );
+        
         // Тест с FluentAssertions имеет следующие приемущества: 
         // 1) Автоматически расширяется при добавлении новых свойств в класс Person
         // 2) Лучшая читаемость кода
