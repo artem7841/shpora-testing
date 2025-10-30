@@ -7,16 +7,16 @@ namespace HomeExercise.Tasks.NumberValidator;
 
 
 [TestFixture]
-public class NumberValidatorTestsFix
+public class NumberValidatorTests
 {
-    [TestCase(-1, 2)]
-    [TestCase(5, -1)]
-    [TestCase(5, 6)]
-    public void Constructor_WithInvalidParameters_ThrowsArgumentException(int precision, int scale)
+    [TestCase(-1, 2,  "Исключение, когда precision отрицательная")]
+    [TestCase(5, -1, "Исключение, когда scale отрицательный")]
+    [TestCase(5, 6, "Исключение, когда scale больше precision")]
+    public void Constructor_WithInvalidParameters_ThrowsArgumentException(int precision, int scale, string description)
     {
         Action action = () => new NumberValidator(precision, scale);
 
-        action.Should().Throw<ArgumentException>();
+        action.Should().Throw<ArgumentException>(description);
     }
     
 
@@ -32,7 +32,8 @@ public class NumberValidatorTestsFix
     }
     
     [TestCase("-1.23", "Отрицательное при onlyPositive=true")]
-    [TestCase("00.000", "Превышение precision")]
+    [TestCase("00.000", "Превышение precision в дробной части")]
+    [TestCase("1234.56", "Превышение precision в целой части")]
     [TestCase("0.000", "Превышение scale")]
     [TestCase("a.sd", "Нечисловой формат")]
     [TestCase("", "Пустая строка")]
@@ -47,39 +48,23 @@ public class NumberValidatorTestsFix
     [TestCase("1.23", "Максимальная precision и scale")]
     [TestCase("12.3", "Граница precision")]
     [TestCase("0.12", "Граница scale")]
+    [TestCase("1,23", "Запятая в качестве разделителя")]
     public void IsValidNumber_WithValidPrecisionAndScale_ReturnsTrue(string number, string description)
     {
         var strictValidator = new NumberValidator(3, 2);
 
         strictValidator.IsValidNumber(number).Should().BeTrue(description);
     }
-
-
-    [TestCase("123.4", "Превышение precision в целой части")]
-    public void IsValidNumber_WithExceededPrecisionAndScale_ReturnsFalse(string number, string description)
+    
+    
+    
+    [TestCase("-1.23", "Отрицательное число")]
+    [TestCase("-0", "Отрицательный ноль")]
+    public void IsValidNumber_WithOnlyPositiveFalse_AcceptsNegativeNumbers(string number, string description)
     {
-        var strictValidator = new NumberValidator(3, 2);
-
-        strictValidator.IsValidNumber(number).Should().BeFalse(description);
-    }
+        var anyNum = new NumberValidator(5, 2, false);
     
-    [Test]
-    public void IsValidNumber_WithOnlyPositiveTrue_RejectsNegativeNumbers()
-    {
-        var positiveOnly  = new NumberValidator(5, 2, true);
-    
-        positiveOnly.IsValidNumber("-1.23").Should().BeFalse("Только положительные: отрицательное число");
-    }
-    
-    [Test]
-    public void IsValidNumber_WithOnlyPositiveFalse_AcceptsAllSigns()
-    {
-        var anyNum  = new NumberValidator(5, 2, false);
-    
-        anyNum.IsValidNumber("-1.23").Should().BeTrue("Отрицательное число");
-        anyNum.IsValidNumber("+1.23").Should().BeTrue("Положительное число с плюсом");
-        anyNum.IsValidNumber("1.23").Should().BeTrue("Положительное число без плюсом");
-        anyNum.IsValidNumber("-0").Should().BeTrue("Отрицательный ноль");
+        anyNum.IsValidNumber(number).Should().BeTrue(description);
     }
 
 
@@ -94,11 +79,4 @@ public class NumberValidatorTestsFix
         validator.IsValidNumber(number).Should().BeFalse(description);
     }
     
-    [TestCase("12,34", "Запятая в качестве разделителя")]
-    public void IsValidNumber_WithCommaAsSeparator_ReturnsTrue(string number, string description)
-    {
-        var validator = new NumberValidator(10, 2);
-
-        validator.IsValidNumber(number).Should().BeTrue(description);
-    }
 }
